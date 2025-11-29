@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+*.ps1
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Database
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Media files (keep directory structure, ignore generated files)
+media/qrcodes/*.png
+media/qrcodes/*.jpg
+media/qrcodes/*.jpeg
+media/originals/*
+media/thumbnails/*
+media/watermarked/*
+!media/originals/.gitkeep
+!media/thumbnails/.gitkeep
+!media/watermarked/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
