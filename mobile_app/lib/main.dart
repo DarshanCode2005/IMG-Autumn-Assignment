@@ -14,6 +14,7 @@ import 'screens/home/create_event_screen.dart';
 import 'screens/gallery/gallery_screen.dart';
 import 'screens/gallery/photo_detail_screen.dart';
 import 'screens/upload/upload_screen.dart';
+import 'screens/profile/profile_screen.dart';
 import 'models/photo.dart';
 
 void main() {
@@ -69,6 +70,10 @@ class AppRouter extends StatelessWidget {
         GoRoute(
           path: '/',
           builder: (context, state) => const HomeScreen(),
+        ),
+        GoRoute(
+          path: '/profile',
+          builder: (context, state) => const ProfileScreen(),
         ),
         GoRoute(
           path: '/create-event',

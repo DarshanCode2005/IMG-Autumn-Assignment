@@ -64,6 +64,17 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> updateProfile(Map<String, dynamic> profileData) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      _user = await _authService.updateProfile(profileData);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> logout() async {
     await _authService.logout();
     _isAuthenticated = false;

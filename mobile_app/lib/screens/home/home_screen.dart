@@ -30,6 +30,10 @@ class _HomeScreenState extends State<HomeScreen> {
         title: const Text('IMG Project'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () => context.push('/profile'),
+          ),
+          IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => context.read<AuthProvider>().logout(),
           ),

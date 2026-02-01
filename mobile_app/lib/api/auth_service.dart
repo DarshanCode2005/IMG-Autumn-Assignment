@@ -71,6 +71,24 @@ class AuthService {
     await _storage.delete(key: AppConstants.tokenKey);
   }
 
+  Future<User> updateProfile(Map<String, dynamic> profileData) async {
+    try {
+      debugPrint('AuthService: Updating profile with data: $profileData');
+      final response = await _apiClient.dio.patch(
+        '/users/me/',
+        data: profileData,
+      );
+      debugPrint('AuthService: Update profile response: ${response.data}');
+      return User.fromJson(response.data);
+    } catch (e) {
+      debugPrint('AuthService: Update profile error: $e');
+      if (e is DioException) {
+        debugPrint('AuthService: Response data: ${e.response?.data}');
+      }
+      rethrow;
+    }
+  }
+
   Future<bool> isAuthenticated() async {
     final token = await _storage.read(key: AppConstants.tokenKey);
     return token != null;
