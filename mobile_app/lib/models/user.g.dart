@@ -21,7 +21,7 @@ Map<String, dynamic> _$ProfileToJson(Profile instance) => <String, dynamic>{
 };
 
 User _$UserFromJson(Map<String, dynamic> json) => User(
-  id: (json['id'] as num).toInt(),
+  id: (json['id'] as num?)?.toInt() ?? 0,
   username: json['username'] as String,
   email: json['email'] as String,
   role: json['role'] as String,
