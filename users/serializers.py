@@ -41,3 +41,25 @@ class UserSerializer(serializers.ModelSerializer):
             Profile.objects.create(user=user)
             
         return user
+
+    def update(self, instance, validated_data):
+        profile_data = validated_data.pop('profile', None)
+        password = validated_data.pop('password', None)
+        
+        # Update user fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        if password:
+            instance.set_password(password)
+        
+        instance.save()
+        
+        # Update profile if provided
+        if profile_data:
+            profile = instance.profile
+            for attr, value in profile_data.items():
+                setattr(profile, attr, value)
+            profile.save()
+        
+        return instance
