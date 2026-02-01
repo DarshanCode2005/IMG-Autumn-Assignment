@@ -4,11 +4,13 @@ from users.serializers import UserSerializer
 
 class CommentSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
+    author_email = serializers.EmailField(source='author.email', read_only=True)
     replies = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ('id', 'author', 'content', 'created_at', 'parent', 'replies')
+        fields = ('id', 'engagement', 'author', 'author_email', 'content', 'created_at', 'parent', 'replies')
+        read_only_fields = ('engagement', 'author')
 
     def get_replies(self, obj):
         if obj.replies.exists():
