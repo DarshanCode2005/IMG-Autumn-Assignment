@@ -122,7 +122,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             return const Center(child: Text('No user data'));
           }
 
-          final profilePicUrl = user.profile?.profilePic;
+          final profilePicUrl = user.profile?.fullProfilePicUrl;
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
@@ -140,10 +140,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: CircleAvatar(
                             radius: 60,
                             backgroundColor: Theme.of(context).colorScheme.primary,
-                            backgroundImage: profilePicUrl != null && profilePicUrl.isNotEmpty
-                                ? CachedNetworkImageProvider('http://localhost:8000$profilePicUrl')
+                            backgroundImage: profilePicUrl != null
+                                ? NetworkImage(profilePicUrl)
                                 : null,
-                            child: profilePicUrl == null || profilePicUrl.isEmpty
+                            child: profilePicUrl == null
                                 ? Text(
                                     user.username.isNotEmpty ? user.username[0].toUpperCase() : '?',
                                     style: const TextStyle(fontSize: 48, color: Colors.white),

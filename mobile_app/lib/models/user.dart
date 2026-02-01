@@ -19,6 +19,15 @@ class Profile {
 
   factory Profile.fromJson(Map<String, dynamic> json) => _$ProfileFromJson(json);
   Map<String, dynamic> toJson() => _$ProfileToJson(this);
+
+  // Helper to get full URL
+  String? get fullProfilePicUrl {
+    if (profilePic == null || profilePic!.isEmpty) return null;
+    // If already a full URL, return as is
+    if (profilePic!.startsWith('http')) return profilePic;
+    // Otherwise, prepend base URL
+    return 'http://localhost:8000$profilePic';
+  }
 }
 
 @JsonSerializable()

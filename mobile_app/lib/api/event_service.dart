@@ -27,10 +27,10 @@ class EventService {
 
   Future<Event> getEvent(int id) async {
     try {
-      final response = await _apiClient.dio.get('/events/$id');
+      final response = await _apiClient.dio.get('/events/$id/');
       return Event.fromJson(response.data);
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -39,24 +39,24 @@ class EventService {
       final response = await _apiClient.dio.post('/events/', data: eventData);
       return Event.fromJson(response.data);
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
   Future<Event> updateEvent(int id, Map<String, dynamic> eventData) async {
     try {
-      final response = await _apiClient.dio.put('/events/$id', data: eventData);
+      final response = await _apiClient.dio.put('/events/$id/', data: eventData);
       return Event.fromJson(response.data);
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
   Future<void> deleteEvent(int id) async {
     try {
-      await _apiClient.dio.delete('/events/$id');
+      await _apiClient.dio.delete('/events/$id/');
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 }

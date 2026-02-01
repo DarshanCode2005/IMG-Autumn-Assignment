@@ -28,14 +28,20 @@ class UserViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'], parser_classes=[MultiPartParser, FormParser])
     def upload_profile_pic(self, request):
         """Upload profile picture for current user."""
+        from .models import Profile
+        
         user = request.user
         
         if 'profile_pic' not in request.FILES:
             return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
         
-        profile = user.profile
+        # Get or create profile
+        profile, created = Profile.objects.get_or_create(user=user)
         profile.profile_pic = request.FILES['profile_pic']
         profile.save()
+        
+        # Refresh user from database to get updated profile
+        user.refresh_from_db()
         
         serializer = self.get_serializer(user)
         return Response(serializer.data)
