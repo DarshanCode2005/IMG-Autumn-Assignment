@@ -6,6 +6,7 @@ from PIL import Image, ImageDraw, ImageFont
 from PIL.ExifTags import TAGS
 from pathlib import Path
 import json
+import os
 import torch
 import torchvision.transforms as transforms
 from torchvision.models import resnet50, ResNet50_Weights
@@ -124,24 +125,31 @@ def process_photo_task(photo_id, original_path):
         photo.processing_status = 'completed'
         photo.save()
         
-        # Notify Uploader
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f"user_{photo.uploader.id}",
-            {
-                "type": "notification_message",
-                "message": {
-                    "type": "photo_processed",
-                    "photo_id": photo.id,
-                    "status": "completed",
-                    "thumbnail_url": photo.thumbnail_image.url if photo.thumbnail_image else None
-                }
-            }
-        )
+        # Notify Uploader (optional - gracefully handle if channels not available)
+        try:
+            channel_layer = get_channel_layer()
+            if channel_layer:
+                async_to_sync(channel_layer.group_send)(
+                    f"user_{photo.uploader.id}",
+                    {
+                        "type": "notification_message",
+                        "message": {
+                            "type": "photo_processed",
+                            "photo_id": photo.id,
+                            "status": "completed",
+                            "thumbnail_url": photo.thumbnail_image.url if photo.thumbnail_image else None
+                        }
+                    }
+                )
+        except Exception as notify_error:
+            print(f"Could not send notification (WebSocket not available): {notify_error}")
 
     except Exception as e:
         print(f"Error processing photo: {e}")
-        photo.processing_status = 'failed'
-        photo.save()
+        try:
+            photo.processing_status = 'failed'
+            photo.save()
+        except:
+            pass
     
     return True
