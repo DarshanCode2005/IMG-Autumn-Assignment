@@ -14,7 +14,7 @@ class PhotoService {
   Future<List<Photo>> searchPhotos({int? eventId, String? tags, int skip = 0, int limit = 100}) async {
     try {
       final Map<String, dynamic> queryParams = {
-        'skip': skip,
+        'offset': skip,
         'limit': limit,
       };
       if (eventId != null) {
@@ -25,6 +25,14 @@ class PhotoService {
       }
 
       final response = await _apiClient.dio.get('/photos/', queryParameters: queryParams);
+      
+      // DRF pagination returns {count, next, previous, results}
+      if (response.data is Map && response.data.containsKey('results')) {
+        final List<dynamic> data = response.data['results'];
+        return data.map((json) => Photo.fromJson(json)).toList();
+      }
+      
+      // Fallback if pagination is disabled or different format
       final List<dynamic> data = response.data;
       return data.map((json) => Photo.fromJson(json)).toList();
     } catch (e) {
@@ -34,7 +42,7 @@ class PhotoService {
 
   Future<LikeResponse> toggleLike(int photoId) async {
     try {
-      final response = await _apiClient.dio.post('/photos/$photoId/like');
+      final response = await _apiClient.dio.post('/photos/$photoId/like/');
       return LikeResponse.fromJson(response.data);
     } catch (e) {
       throw e;
@@ -44,7 +52,7 @@ class PhotoService {
   Future<Photo> updatePhotoTags(int photoId, List<String> tags) async {
     try {
       final response = await _apiClient.dio.put(
-        '/photos/$photoId', 
+        '/photos/$photoId/', 
         data: {'manual_tags': tags}
       );
       return Photo.fromJson(response.data);
@@ -81,9 +89,9 @@ class PhotoService {
 
       final formData = FormData.fromMap(map);
 
-      debugPrint('PhotoService: Sending POST request to ${AppConstants.baseUrl}/photos/upload');
+      debugPrint('PhotoService: Sending POST request to ${AppConstants.baseUrl}/photos/upload/');
       final response = await _apiClient.dio.post(
-        '/photos/upload',
+        '/photos/upload/',
         data: formData,
       );
       

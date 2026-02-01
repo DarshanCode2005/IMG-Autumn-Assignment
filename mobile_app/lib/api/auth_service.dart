@@ -13,14 +13,14 @@ class AuthService {
   Future<void> login(String email, String password) async {
     try {
       final response = await _apiClient.dio.post(
-        '/auth/login',
-        data: FormData.fromMap({
+        '/auth/token/',
+        data: {
           'username': email,
           'password': password,
-        }),
+        },
       );
       
-      final token = response.data['access_token'];
+      final token = response.data['access'];
       await _storage.write(key: AppConstants.tokenKey, value: token);
     } catch (e) {
       throw e;
@@ -29,7 +29,7 @@ class AuthService {
 
   Future<User> getUserMe() async {
     try {
-      final response = await _apiClient.dio.get('/auth/me');
+      final response = await _apiClient.dio.get('/users/me/');
       return User.fromJson(response.data);
     } catch (e) {
       throw e;
@@ -39,8 +39,9 @@ class AuthService {
   Future<User> register(String email, String password, String role) async {
     try {
       final response = await _apiClient.dio.post(
-        '/auth/register',
+        '/users/',
         data: {
+          'username': email, // Django uses username
           'email': email,
           'password': password,
           'role': role,
