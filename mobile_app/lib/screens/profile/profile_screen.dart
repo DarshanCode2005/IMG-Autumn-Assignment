@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../providers/auth_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -17,6 +19,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   late TextEditingController _deptController;
   bool _isEditing = false;
   bool _isLoading = false;
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -33,6 +36,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _batchController.dispose();
     _deptController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 80,
+      );
+      
+      if (pickedFile != null) {
+        setState(() => _isLoading = true);
+        await context.read<AuthProvider>().uploadProfilePic(pickedFile);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profile picture updated')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   Future<void> _saveProfile() async {
@@ -90,6 +122,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             return const Center(child: Text('No user data'));
           }
 
+          final profilePicUrl = user.profile?.profilePic;
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Form(
@@ -97,15 +131,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Avatar
+                  // Avatar with edit option
                   Center(
-                    child: CircleAvatar(
-                      radius: 50,
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      child: Text(
-                        user.username.isNotEmpty ? user.username[0].toUpperCase() : '?',
-                        style: const TextStyle(fontSize: 40, color: Colors.white),
-                      ),
+                    child: Stack(
+                      children: [
+                        GestureDetector(
+                          onTap: _isLoading ? null : _pickAndUploadImage,
+                          child: CircleAvatar(
+                            radius: 60,
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            backgroundImage: profilePicUrl != null && profilePicUrl.isNotEmpty
+                                ? CachedNetworkImageProvider('http://localhost:8000$profilePicUrl')
+                                : null,
+                            child: profilePicUrl == null || profilePicUrl.isEmpty
+                                ? Text(
+                                    user.username.isNotEmpty ? user.username[0].toUpperCase() : '?',
+                                    style: const TextStyle(fontSize: 48, color: Colors.white),
+                                  )
+                                : null,
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: GestureDetector(
+                            onTap: _isLoading ? null : _pickAndUploadImage,
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary,
+                                shape: BoxShape.circle,
+                              ),
+                              child: _isLoading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Center(
+                    child: Text(
+                      'Tap to change photo',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
                     ),
                   ),
                   const SizedBox(height: 24),

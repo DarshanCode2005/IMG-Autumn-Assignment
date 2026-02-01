@@ -17,7 +17,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _isAuthenticated;
   User? get user => _user;
   bool get isAdminOrCoordinator => 
-    _user?.role == 'Admin' || _user?.role == 'Coordinator';
+    _user?.role.toLowerCase() == 'admin' || _user?.role.toLowerCase() == 'coordinator';
 
   Future<void> checkAuthStatus() async {
     _isAuthenticated = await _authService.isAuthenticated();
@@ -69,6 +69,17 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
     try {
       _user = await _authService.updateProfile(profileData);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> uploadProfilePic(dynamic file) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      _user = await _authService.uploadProfilePic(file);
     } finally {
       _isLoading = false;
       notifyListeners();

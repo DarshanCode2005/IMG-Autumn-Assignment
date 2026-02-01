@@ -1,6 +1,7 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser
 from django.contrib.auth import get_user_model
 from .serializers import UserSerializer
 
@@ -23,6 +24,21 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], parser_classes=[MultiPartParser, FormParser])
+    def upload_profile_pic(self, request):
+        """Upload profile picture for current user."""
+        user = request.user
+        
+        if 'profile_pic' not in request.FILES:
+            return Response({'error': 'No file provided'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        profile = user.profile
+        profile.profile_pic = request.FILES['profile_pic']
+        profile.save()
+        
+        serializer = self.get_serializer(user)
+        return Response(serializer.data)
 
     def get_permissions(self):
         if self.action == 'create':

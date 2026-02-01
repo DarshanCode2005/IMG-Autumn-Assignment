@@ -89,6 +89,37 @@ class AuthService {
     }
   }
 
+  Future<User> uploadProfilePic(dynamic file) async {
+    try {
+      debugPrint('AuthService: Uploading profile picture');
+      
+      MultipartFile multipartFile;
+      if (kIsWeb) {
+        final bytes = await file.readAsBytes();
+        multipartFile = MultipartFile.fromBytes(bytes, filename: file.name);
+      } else {
+        multipartFile = await MultipartFile.fromFile(file.path, filename: file.name);
+      }
+      
+      final formData = FormData.fromMap({
+        'profile_pic': multipartFile,
+      });
+      
+      final response = await _apiClient.dio.post(
+        '/users/upload_profile_pic/',
+        data: formData,
+      );
+      debugPrint('AuthService: Upload profile pic response: ${response.data}');
+      return User.fromJson(response.data);
+    } catch (e) {
+      debugPrint('AuthService: Upload profile pic error: $e');
+      if (e is DioException) {
+        debugPrint('AuthService: Response data: ${e.response?.data}');
+      }
+      rethrow;
+    }
+  }
+
   Future<bool> isAuthenticated() async {
     final token = await _storage.read(key: AppConstants.tokenKey);
     return token != null;
