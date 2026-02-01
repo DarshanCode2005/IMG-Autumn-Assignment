@@ -1,14 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from app.core.database import engine
-from app.models.base import Base
 from app.api.v1 import events, photos, me
 from app.websockets import notifications
 import os
-
-# Create database tables
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="IMG Project API",
