@@ -5,42 +5,43 @@ part 'photo.g.dart';
 @JsonSerializable()
 class Photo {
   final int id;
-  @JsonKey(name: 'original_path')
-  final String originalPath;
-  @JsonKey(name: 'thumbnail_path')
-  final String? thumbnailPath;
-  @JsonKey(name: 'watermarked_path')
-  final String? watermarkedPath;
+  @JsonKey(name: 'original_image')
+  final String? originalImage;
+  @JsonKey(name: 'thumbnail_image')
+  final String? thumbnailImage;
+  @JsonKey(name: 'watermarked_image')
+  final String? watermarkedImage;
   @JsonKey(name: 'likes_count')
   final int likesCount;
   @JsonKey(name: 'is_liked')
   final bool isLiked;
   @JsonKey(name: 'comments_count')
   final int commentsCount;
-  @JsonKey(name: 'event_id')
-  final int? eventId;
-  @JsonKey(name: 'uploader_id')
-  final int uploaderId;
+  final int? event;
+  final dynamic uploader;
   @JsonKey(name: 'ai_tags')
   final List<String>? aiTags;
   @JsonKey(name: 'manual_tags')
   final List<String>? manualTags;
   @JsonKey(name: 'exif_data')
   final Map<String, dynamic>? exifData;
+  @JsonKey(name: 'processing_status')
+  final String? processingStatus;
 
   Photo({
     required this.id,
-    required this.originalPath,
-    this.thumbnailPath,
-    this.watermarkedPath,
+    this.originalImage,
+    this.thumbnailImage,
+    this.watermarkedImage,
     this.likesCount = 0,
     this.isLiked = false,
     this.commentsCount = 0,
-    this.eventId,
-    required this.uploaderId,
+    this.event,
+    this.uploader,
     this.aiTags,
     this.manualTags,
     this.exifData,
+    this.processingStatus,
   });
 
   factory Photo.fromJson(Map<String, dynamic> json) => _$PhotoFromJson(json);
@@ -49,42 +50,48 @@ class Photo {
   // CopyWith helper
   Photo copyWith({
     int? id,
-    String? originalPath,
-    String? thumbnailPath,
-    String? watermarkedPath,
+    String? originalImage,
+    String? thumbnailImage,
+    String? watermarkedImage,
     int? likesCount,
     bool? isLiked,
     int? commentsCount,
-    int? eventId,
-    int? uploaderId,
+    int? event,
+    dynamic uploader,
     List<String>? aiTags,
     List<String>? manualTags,
     Map<String, dynamic>? exifData,
+    String? processingStatus,
   }) {
     return Photo(
       id: id ?? this.id,
-      originalPath: originalPath ?? this.originalPath,
-      thumbnailPath: thumbnailPath ?? this.thumbnailPath,
-      watermarkedPath: watermarkedPath ?? this.watermarkedPath,
+      originalImage: originalImage ?? this.originalImage,
+      thumbnailImage: thumbnailImage ?? this.thumbnailImage,
+      watermarkedImage: watermarkedImage ?? this.watermarkedImage,
       likesCount: likesCount ?? this.likesCount,
       isLiked: isLiked ?? this.isLiked,
       commentsCount: commentsCount ?? this.commentsCount,
-      eventId: eventId ?? this.eventId,
-      uploaderId: uploaderId ?? this.uploaderId,
+      event: event ?? this.event,
+      uploader: uploader ?? this.uploader,
       aiTags: aiTags ?? this.aiTags,
       manualTags: manualTags ?? this.manualTags,
       exifData: exifData ?? this.exifData,
+      processingStatus: processingStatus ?? this.processingStatus,
     );
   }
   
   // Helpers to get full URLs
-  String get fullThumbnailUrl => thumbnailPath != null 
-    ? 'http://localhost:8000/$thumbnailPath' 
-    : 'http://localhost:8000/$originalPath';
+  static const String _baseUrl = 'http://localhost:8000';
+  
+  String get fullThumbnailUrl => thumbnailImage != null 
+    ? '$_baseUrl$thumbnailImage' 
+    : (originalImage != null ? '$_baseUrl$originalImage' : '');
     
-  String get fullWatermarkedUrl => watermarkedPath != null 
-    ? 'http://localhost:8000/$watermarkedPath' 
-    : 'http://localhost:8000/$originalPath';
+  String get fullWatermarkedUrl => watermarkedImage != null 
+    ? '$_baseUrl$watermarkedImage' 
+    : (originalImage != null ? '$_baseUrl$originalImage' : '');
 
-  String get fullOriginalUrl => 'http://localhost:8000/$originalPath';
+  String get fullOriginalUrl => originalImage != null ? '$_baseUrl$originalImage' : '';
+  
+  int get uploaderId => uploader is Map ? uploader['id'] ?? 0 : 0;
 }

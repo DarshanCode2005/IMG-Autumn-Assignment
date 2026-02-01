@@ -14,7 +14,7 @@ class CommentProvider extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
     try {
-      final response = await _apiClient.dio.get('/photos/$photoId/comments');
+      final response = await _apiClient.dio.get('/photos/$photoId/comments/');
       final List<dynamic> data = response.data;
       _photoComments[photoId] = data.map((json) => Comment.fromJson(json)).toList();
     } catch (e) {
@@ -27,7 +27,7 @@ class CommentProvider extends ChangeNotifier {
 
   Future<void> addComment(int photoId, String content, {int? parentId}) async {
     try {
-      await _apiClient.dio.post('/photos/$photoId/comments', data: {
+      await _apiClient.dio.post('/photos/$photoId/comments/', data: {
         'content': content,
         'parent_id': parentId,
       });

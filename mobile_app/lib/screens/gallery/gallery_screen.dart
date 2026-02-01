@@ -6,6 +6,7 @@ import '../../providers/photo_provider.dart';
 import '../../widgets/photo_grid_item.dart';
 import '../../providers/event_provider.dart';
 import '../../providers/websocket_provider.dart';
+import '../../providers/auth_provider.dart';
 
 class GalleryScreen extends StatefulWidget {
   final int eventId;
@@ -18,6 +19,7 @@ class GalleryScreen extends StatefulWidget {
 
 class _GalleryScreenState extends State<GalleryScreen> {
   StreamSubscription? _wsSubscription;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -38,25 +40,108 @@ class _GalleryScreenState extends State<GalleryScreen> {
   @override
   void dispose() {
     _wsSubscription?.cancel();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  void _showDeleteDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Event'),
+        content: const Text('Are you sure you want to delete this event? This will also delete all photos in this event.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                await context.read<EventProvider>().deleteEvent(widget.eventId);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Event deleted')),
+                  );
+                  context.go('/');
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e')),
+                  );
+                }
+              }
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final event = context.watch<EventProvider>().getEventById(widget.eventId);
     final photoProvider = context.watch<PhotoProvider>();
+    final isAdminOrCoordinator = context.watch<AuthProvider>().isAdminOrCoordinator;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(event?.name ?? 'Event Gallery'),
+        actions: [
+          if (isAdminOrCoordinator)
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'edit') {
+                  context.push('/create-event', extra: event);
+                } else if (value == 'delete') {
+                  _showDeleteDialog(context);
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit),
+                      SizedBox(width: 8),
+                      Text('Edit Event'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text('Delete Event', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(60),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: TextField(
+              controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'Search by tags...',
                 prefixIcon: const Icon(Icons.search),
+                suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () {
+                          _searchController.clear();
+                          photoProvider.loadPhotos(widget.eventId);
+                        },
+                      )
+                    : null,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
                 ),
@@ -64,6 +149,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
                 filled: true,
                 fillColor: Colors.white,
               ),
+              onChanged: (value) {
+                setState(() {}); // Rebuild to show/hide clear button
+              },
               onSubmitted: (value) {
                 photoProvider.loadPhotos(widget.eventId, tags: value);
               },

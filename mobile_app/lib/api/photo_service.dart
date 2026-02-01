@@ -18,10 +18,10 @@ class PhotoService {
         'limit': limit,
       };
       if (eventId != null) {
-        queryParams['event_id'] = eventId;
+        queryParams['event'] = eventId;  // Django uses 'event' not 'event_id'
       }
       if (tags != null && tags.isNotEmpty) {
-        queryParams['tags'] = tags;
+        queryParams['search'] = tags;  // If using SearchFilter
       }
 
       final response = await _apiClient.dio.get('/photos/', queryParameters: queryParams);
@@ -36,7 +36,8 @@ class PhotoService {
       final List<dynamic> data = response.data;
       return data.map((json) => Photo.fromJson(json)).toList();
     } catch (e) {
-      throw e;
+      debugPrint('PhotoService: Error fetching photos: $e');
+      rethrow;
     }
   }
 

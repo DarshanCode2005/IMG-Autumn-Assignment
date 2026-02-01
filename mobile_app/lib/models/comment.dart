@@ -6,12 +6,10 @@ part 'comment.g.dart';
 class Comment {
   final int id;
   final String content;
-  @JsonKey(name: 'author_id')
-  final int authorId;
+  final dynamic author;  // Can be a nested object or null
   @JsonKey(name: 'author_email')
   final String? authorEmail;
-  @JsonKey(name: 'parent_id')
-  final int? parentId;
+  final int? parent;
   @JsonKey(name: 'created_at')
   final String createdAt;
   final List<Comment>? replies;
@@ -19,13 +17,25 @@ class Comment {
   Comment({
     required this.id,
     required this.content,
-    required this.authorId,
+    this.author,
     this.authorEmail,
-    this.parentId,
+    this.parent,
     required this.createdAt,
     this.replies,
   });
 
   factory Comment.fromJson(Map<String, dynamic> json) => _$CommentFromJson(json);
   Map<String, dynamic> toJson() => _$CommentToJson(this);
+  
+  // Helper to get author ID
+  int get authorId => author is Map ? author['id'] ?? 0 : 0;
+  
+  // Helper to get display name
+  String get authorDisplayName {
+    if (authorEmail != null) return authorEmail!;
+    if (author is Map) {
+      return author['email'] ?? author['username'] ?? 'User ${author['id']}';
+    }
+    return 'Unknown';
+  }
 }

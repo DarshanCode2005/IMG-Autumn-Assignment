@@ -419,7 +419,7 @@ class _CommentItem extends StatelessWidget {
               Row(
                 children: [
                   Text(
-                    comment.authorEmail ?? 'User ${comment.authorId}',
+                    comment.authorDisplayName,
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(width: 8),
