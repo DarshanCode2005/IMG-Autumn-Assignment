@@ -16,15 +16,24 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'username', 'email', 'password', 'first_name', 'last_name', 'role', 'is_verified', 'profile')
         read_only_fields = ('is_verified',)
-        extra_kwargs = {'password': {'write_only': True}}
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'required': True}, # Make email required
+        }
 
     def create(self, validated_data):
         profile_data = validated_data.pop('profile', None)
-        password = validated_data.pop('password', None)
-        user = User.objects.create(**validated_data)
-        if password:
-            user.set_password(password)
-            user.save()
+        password = validated_data.pop('password')
+        
+        # Use create_user to handle hashing and normalization
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data.get('email', ''),
+            password=password,
+            role=validated_data.get('role', 'member'),
+            first_name=validated_data.get('first_name', ''),
+            last_name=validated_data.get('last_name', '')
+        )
         
         if profile_data:
             Profile.objects.create(user=user, **profile_data)

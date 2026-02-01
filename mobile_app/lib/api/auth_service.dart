@@ -44,7 +44,7 @@ class AuthService {
           'username': email, // Django uses username
           'email': email,
           'password': password,
-          'role': role,
+          'role': role.toLowerCase(),
         },
       );
       return User.fromJson(response.data);
