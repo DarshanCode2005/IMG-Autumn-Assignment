@@ -2,12 +2,15 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.parsers import MultiPartParser, FormParser
 from .models import Photo
 from .serializers import PhotoSerializer
+from rest_framework.decorators import action
 
 class PhotoViewSet(viewsets.ModelViewSet):
     queryset = Photo.objects.all().order_by('-created_at')
     serializer_class = PhotoSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
     parser_classes = (MultiPartParser, FormParser)
+    filterset_fields = ['event']
+    # search_fields = ['ai_tags', 'manual_tags'] # JSON searching depends on DB backend capabilities
 
     def perform_create(self, serializer):
         serializer.save(uploader=self.request.user)
@@ -25,8 +28,12 @@ class PhotoViewSet(viewsets.ModelViewSet):
             
             serializer = self.get_serializer(data=data)
             if serializer.is_valid():
-                serializer.save(uploader=request.user)
+                photo_instance = serializer.save(uploader=request.user)
                 created_photos.append(serializer.data)
+                
+                # Trigger background processing
+                from .tasks import process_photo_task
+                process_photo_task.delay(photo_instance.id, photo_instance.original_image.path)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
