@@ -10,10 +10,18 @@ class EventService {
   Future<List<Event>> getEvents() async {
     try {
       final response = await _apiClient.dio.get('/events/');
+      
+      // DRF pagination returns {count, next, previous, results}
+      if (response.data is Map && response.data.containsKey('results')) {
+        final List<dynamic> data = response.data['results'];
+        return data.map((json) => Event.fromJson(json)).toList();
+      }
+      
+      // Fallback if pagination is disabled
       final List<dynamic> data = response.data;
       return data.map((json) => Event.fromJson(json)).toList();
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 

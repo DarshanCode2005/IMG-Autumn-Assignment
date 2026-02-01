@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../utils/constants.dart';
 import 'api_client.dart';
@@ -12,6 +13,7 @@ class AuthService {
 
   Future<void> login(String email, String password) async {
     try {
+      debugPrint('AuthService: Attempting login with username: $email');
       final response = await _apiClient.dio.post(
         '/auth/token/',
         data: {
@@ -20,10 +22,15 @@ class AuthService {
         },
       );
       
+      debugPrint('AuthService: Login response: ${response.data}');
       final token = response.data['access'];
       await _storage.write(key: AppConstants.tokenKey, value: token);
     } catch (e) {
-      throw e;
+      debugPrint('AuthService: Login error: $e');
+      if (e is DioException) {
+        debugPrint('AuthService: Response data: ${e.response?.data}');
+      }
+      rethrow;
     }
   }
 
@@ -32,12 +39,14 @@ class AuthService {
       final response = await _apiClient.dio.get('/users/me/');
       return User.fromJson(response.data);
     } catch (e) {
-      throw e;
+      debugPrint('AuthService: getUserMe error: $e');
+      rethrow;
     }
   }
 
   Future<User> register(String email, String password, String role) async {
     try {
+      debugPrint('AuthService: Attempting registration with email: $email, role: $role');
       final response = await _apiClient.dio.post(
         '/users/',
         data: {
@@ -47,9 +56,14 @@ class AuthService {
           'role': role.toLowerCase(),
         },
       );
+      debugPrint('AuthService: Registration response: ${response.data}');
       return User.fromJson(response.data);
     } catch (e) {
-      throw e;
+      debugPrint('AuthService: Registration error: $e');
+      if (e is DioException) {
+        debugPrint('AuthService: Response data: ${e.response?.data}');
+      }
+      rethrow;
     }
   }
 
