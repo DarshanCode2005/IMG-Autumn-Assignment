@@ -25,6 +25,13 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             self.group_name,
             self.channel_name
         )
+        
+        # Join global updates group
+        await self.channel_layer.group_add(
+            "global_updates",
+            self.channel_name
+        )
+        
         await self.accept()
         print(f"WebSocket connected: {self.group_name}")
 
@@ -32,6 +39,10 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         if hasattr(self, 'group_name'):
             await self.channel_layer.group_discard(
                 self.group_name,
+                self.channel_name
+            )
+            await self.channel_layer.group_discard(
+                "global_updates",
                 self.channel_name
             )
             print(f"WebSocket disconnected: {self.group_name}")

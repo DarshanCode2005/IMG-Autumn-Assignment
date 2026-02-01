@@ -54,6 +54,26 @@ class PhotoViewSet(viewsets.ModelViewSet):
             Like.objects.create(photo=photo, user=user)
             liked = True
             
+        # Broadcast update
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        
+        try:
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                "global_updates",
+                {
+                    "type": "notification_message",
+                    "message": {
+                        "type": "photo_like_update",
+                        "photo_id": photo.id,
+                        "likes_count": photo.likes.count(),
+                    }
+                }
+            )
+        except Exception:
+            pass # Ignore if channels not configured/running
+            
         return Response({'liked': liked, 'likes_count': photo.likes.count()})
 
     @action(detail=True, methods=['get', 'post'])
@@ -92,6 +112,28 @@ class PhotoViewSet(viewsets.ModelViewSet):
             )
             
             serializer = CommentSerializer(comment)
+            
+            # Broadcast update
+            from channels.layers import get_channel_layer
+            from asgiref.sync import async_to_sync
+            
+            try:
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    "global_updates",
+                    {
+                        "type": "notification_message",
+                        "message": {
+                            "type": "new_comment",
+                            "photo_id": photo.id,
+                            "comment": serializer.data,
+                            "comments_count": engagement.comments.count()
+                        }
+                    }
+                )
+            except Exception:
+                pass
+            
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=['post'])

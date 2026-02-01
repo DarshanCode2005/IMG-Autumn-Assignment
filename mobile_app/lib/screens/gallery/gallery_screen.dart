@@ -7,6 +7,7 @@ import '../../widgets/photo_grid_item.dart';
 import '../../providers/event_provider.dart';
 import '../../providers/websocket_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/comment_provider.dart';
 
 class GalleryScreen extends StatefulWidget {
   final int eventId;
@@ -33,6 +34,9 @@ class _GalleryScreenState extends State<GalleryScreen> {
       wsProvider.connect(1); // Default to user 1 for now
       _wsSubscription = wsProvider.stream.listen((data) {
         photoProvider.handleMessage(data);
+        if (mounted) {
+          context.read<CommentProvider>().handleMessage(data);
+        }
       });
     });
   }

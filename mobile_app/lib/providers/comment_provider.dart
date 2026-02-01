@@ -37,4 +37,20 @@ class CommentProvider extends ChangeNotifier {
       rethrow;
     }
   }
+
+  void handleMessage(Map<String, dynamic> data) {
+    if (data['type'] == 'new_comment') {
+      final photoId = (data['photo_id'] as num).toInt();
+      final commentData = data['comment'];
+      
+      if (_photoComments.containsKey(photoId)) {
+        final newComment = Comment.fromJson(commentData);
+        // Check if it already exists (to avoid duplicates if we sent it)
+        if (!_photoComments[photoId]!.any((c) => c.id == newComment.id)) {
+           _photoComments[photoId]!.add(newComment);
+           notifyListeners();
+        }
+      }
+    }
+  }
 }

@@ -76,7 +76,8 @@ class PhotoProvider extends ChangeNotifier {
   }
 
   void handleMessage(Map<String, dynamic> data) {
-    if (data['type'] == 'like_update') {
+    debugPrint('PhotoProvider: Received message: $data');
+    if (data['type'] == 'photo_like_update') {
       final photoId = (data['photo_id'] as num).toInt();
       final likesCount = (data['likes_count'] as num).toInt();
       
@@ -84,6 +85,17 @@ class PhotoProvider extends ChangeNotifier {
       if (index != -1) {
         _photos[index] = _photos[index].copyWith(
           likesCount: likesCount,
+        );
+        notifyListeners();
+      }
+    } else if (data['type'] == 'new_comment') {
+      final photoId = (data['photo_id'] as num).toInt();
+      final commentsCount = (data['comments_count'] as num).toInt();
+      
+      final index = _photos.indexWhere((p) => p.id == photoId);
+      if (index != -1) {
+        _photos[index] = _photos[index].copyWith(
+          commentsCount: commentsCount,
         );
         notifyListeners();
       }

@@ -83,15 +83,17 @@ class Photo {
   // Helpers to get full URLs
   static const String _baseUrl = 'http://localhost:8000';
   
-  String get fullThumbnailUrl => thumbnailImage != null 
-    ? '$_baseUrl$thumbnailImage' 
-    : (originalImage != null ? '$_baseUrl$originalImage' : '');
-    
-  String get fullWatermarkedUrl => watermarkedImage != null 
-    ? '$_baseUrl$watermarkedImage' 
-    : (originalImage != null ? '$_baseUrl$originalImage' : '');
+  String _getUrl(String? path) {
+    if (path == null) return '';
+    if (path.startsWith('http')) return path;
+    return '$_baseUrl$path';
+  }
 
-  String get fullOriginalUrl => originalImage != null ? '$_baseUrl$originalImage' : '';
+  String get fullThumbnailUrl => _getUrl(thumbnailImage ?? originalImage);
+    
+  String get fullWatermarkedUrl => _getUrl(watermarkedImage ?? originalImage);
+
+  String get fullOriginalUrl => _getUrl(originalImage);
   
   int get uploaderId => uploader is Map ? uploader['id'] ?? 0 : 0;
 }
