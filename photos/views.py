@@ -1,5 +1,5 @@
 from rest_framework import viewsets, permissions, status
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from .models import Photo, TaggedIn
 from .serializers import PhotoSerializer
@@ -11,7 +11,7 @@ class PhotoViewSet(viewsets.ModelViewSet):
     queryset = Photo.objects.all().order_by('-created_at')
     serializer_class = PhotoSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
-    parser_classes = (MultiPartParser, FormParser)
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
     filterset_fields = ['event']
 
     def perform_create(self, serializer):
@@ -74,7 +74,12 @@ class PhotoViewSet(viewsets.ModelViewSet):
         except Exception:
             pass # Ignore if channels not configured/running
             
-        return Response({'liked': liked, 'likes_count': photo.likes.count()})
+        return Response({
+            'liked': liked, 
+            'likes_count': photo.likes.count(),
+            'photo_id': photo.id,
+            'user_id': user.id
+        })
 
     @action(detail=True, methods=['get', 'post'])
     def comments(self, request, pk=None):

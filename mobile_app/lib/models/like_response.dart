@@ -13,10 +13,10 @@ class LikeResponse {
 
   factory LikeResponse.fromJson(Map<String, dynamic> json) {
     return LikeResponse(
-      photoId: (json['photo_id'] as num).toInt(),
-      userId: (json['user_id'] as num).toInt(),
-      liked: json['liked'] as bool,
-      likesCount: (json['likes_count'] as num).toInt(),
+      photoId: (json['photo_id'] as num?)?.toInt() ?? 0,
+      userId: (json['user_id'] as num?)?.toInt() ?? 0,
+      liked: json['liked'] as bool? ?? false,
+      likesCount: (json['likes_count'] as num?)?.toInt() ?? 0,
     );
   }
 }
