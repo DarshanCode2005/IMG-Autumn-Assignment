@@ -1,14 +1,14 @@
 from channels.auth import AuthMiddlewareStack
 from channels.db import database_sync_to_async
-from django.contrib.auth.models import AnonymousUser
-from rest_framework_simplejwt.tokens import AccessToken
-from django.contrib.auth import get_user_model
 from urllib.parse import parse_qs
-
-User = get_user_model()
 
 @database_sync_to_async
 def get_user(token_key):
+    from django.contrib.auth.models import AnonymousUser
+    from django.contrib.auth import get_user_model
+    from rest_framework_simplejwt.tokens import AccessToken
+    
+    User = get_user_model()
     try:
         token = AccessToken(token_key)
         user = User.objects.get(id=token['user_id'])
@@ -21,6 +21,8 @@ class TokenAuthMiddleware:
         self.inner = inner
 
     async def __call__(self, scope, receive, send):
+        from django.contrib.auth.models import AnonymousUser
+        
         query_string = parse_qs(scope['query_string'].decode())
         token = query_string.get('token')
         
